@@ -20,6 +20,7 @@ use Dibi;
  *   - persistent (bool) => try to find a persistent link?
  *   - resource (resource) => existing connection resource
  *   - lazy, profiler, result, substitutes, ... => see Dibi\Connection options
+ *   - microseconds (bool) => use microseconds in datetime format?
  */
 class OdbcDriver implements Dibi\Driver, Dibi\ResultDriver, Dibi\Reflector
 {
@@ -33,6 +34,9 @@ class OdbcDriver implements Dibi\Driver, Dibi\ResultDriver, Dibi\Reflector
 
 	/** @var bool */
 	private $autoFree = true;
+
+	/** @var bool */
+	private $microseconds = true;
 
 	/** @var int|false  Affected rows */
 	private $affectedRows = false;
@@ -78,6 +82,10 @@ class OdbcDriver implements Dibi\Driver, Dibi\ResultDriver, Dibi\Reflector
 
 		if (!is_resource($this->connection)) {
 			throw new Dibi\DriverException(odbc_errormsg() . ' ' . odbc_error());
+		}
+
+		if (isset($config['microseconds'])) {
+			$this->microseconds = (bool) $config['microseconds'];
 		}
 	}
 
@@ -287,7 +295,7 @@ class OdbcDriver implements Dibi\Driver, Dibi\ResultDriver, Dibi\Reflector
 		if (!$value instanceof \DateTime && !$value instanceof \DateTimeInterface) {
 			$value = new Dibi\DateTime($value);
 		}
-		return $value->format('#m/d/Y H:i:s.u#');
+		return $value->format($this->microseconds ? '#m/d/Y H:i:s.u#' : '#m/d/Y H:i:s#');
 	}
 
 
